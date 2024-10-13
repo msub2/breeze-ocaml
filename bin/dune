@@ -1,0 +1,4 @@
+(executable
+ (public_name breeze)
+ (name main)
+ (libraries breeze unix bogue))
