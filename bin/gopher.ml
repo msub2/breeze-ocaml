@@ -51,17 +51,19 @@ let parse_plaintext_response response gopher_view =
 
   Layout.set_rooms gopher_view [text]
 
+let get_icon line_kind = 
+  match line_kind with
+    | '0' -> "file-text"
+    | '1' -> "folder-open"
+    | _ -> "question"
+
 let rec parse_gopher_response response gopher_view urlbar = 
   let tokens = String.split_on_char '\n' response in
   let lines = List.map build_gopher_line tokens in
   let style_line line =
-    let icon = match line.line_kind with
-    | '0' -> "file-text"
-    | '1' -> "folder-open"
-    | _ -> "question" in
     let line_widgets = match line.line_kind with
     | '0' | '1' -> 
-      let icon = Widget.icon icon in
+      let icon = get_icon line.line_kind |> Widget.icon in
       let text = Widget.rich_text [(Text_display.underline (Text_display.raw line.text))] ~w:!_width ~h:18 in
       Widget.mouse_over ~enter:(fun _ -> Draw.set_system_cursor Tsdl.Sdl.System_cursor.hand) text;
       let on_click _ =
