@@ -78,11 +78,21 @@ let rec parse_gopher_response response gopher_view urlbar =
         | '1' -> 
           History.add_entry (Widget.get_text urlbar, Gopher);
           parse_gopher_response response gopher_view urlbar
-        | _ -> 
-          History.add_entry (Widget.get_text urlbar, Unknown);
-          parse_plaintext_response response gopher_view in
+        | _ -> () in (* Unreachable *)
       Widget.on_click ~click:on_click text;
       [icon; text]
+    | '7' -> 
+      let text = Widget.text_display line.text in
+      let search_field = Widget.text_input () in
+      let search_action _ =
+        line.server ^ line.selector ^ "\t" ^ Widget.get_text search_field ^ "\r\n"
+          |> Widget.set_text urlbar;
+        let request_body = line.selector ^ "\t" ^ Widget.get_text search_field ^ "\r\n" in
+        let response = network_request line.server line.port request_body in
+        History.add_entry (Widget.get_text urlbar, Gopher);
+        parse_gopher_response response gopher_view urlbar in
+      let go_button = Widget.button ~action:(fun _ -> search_action ())"Go" in
+      [text; search_field; go_button]
     | 'i' -> [Widget.text_display line.text ~w:!_width ~h:18]
     | _ -> 
       let icon = Widget.icon "question" in
