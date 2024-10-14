@@ -24,11 +24,15 @@ let history_action (action : history_action) gopher_view urlbar =
     let _ = match action with 
     | Forward -> History.history_forward ()
     | Back -> History.history_back () in
-    let (url, _) = History.get_history () in
+    let (url, pagetype) = History.get_history () in
     let (host, port, selector) = parse_gopher_url url in
     let request_body = selector ^ "\r\n" in
     let response = network_request host port request_body in
-    parse_gopher_response response gopher_view urlbar;
+    match pagetype with
+    | Gopher -> parse_gopher_response response gopher_view urlbar;
+    | Plaintext -> parse_plaintext_response response gopher_view;
+    | _ -> parse_plaintext_response response gopher_view;
+    
     Widget.set_text urlbar url
 
 (* Main Loop *)
