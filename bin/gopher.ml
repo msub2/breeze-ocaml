@@ -1,5 +1,6 @@
 open Bogue
 open History
+open Networking
 
 (* Window size constants *)
 let _width = ref 640
@@ -19,8 +20,8 @@ let new_gopher_line line_kind text selector server port =
 let parse_gopher_url url =
   match String.split_on_char '/' url with
   | host :: selector_parts -> 
-      let selector = String.concat "/" selector_parts in
-      (host, 70, selector)
+      let request_body = String.concat "/" selector_parts in
+      (host, 70, request_body)
   | [] -> failwith "Invalid URL"
 
 let build_gopher_line line =
@@ -34,35 +35,6 @@ let build_gopher_line line =
     gopher_line
   else
     new_gopher_line 'i' "" "" "" 70
-
-let gopher_request host port selector =
-  Draw.set_system_cursor Tsdl.Sdl.System_cursor.wait;
-  (* Create a socket and connect to the server *)
-  let socket = Unix.socket PF_INET SOCK_STREAM 0 in
-  let server_addr = (Unix.gethostbyname host).h_addr_list.(0) in
-  let server_sockaddr = Unix.ADDR_INET (server_addr, port) in
-  Unix.connect socket server_sockaddr;
-
-  (* Send the request *)
-  let request = selector ^ "\r\n" in
-  let _ = Unix.send socket (Bytes.of_string request) 0 (String.length request) [] in
-
-  (* Buffer to store the entire response *)
-  let buffer_size = 4096 in
-  let buffer = Bytes.create buffer_size in
-  let rec read_response acc =
-    match Unix.recv socket buffer 0 buffer_size [] with
-    | 0 -> acc  (* End of data *)
-    | len ->
-        let response_part = Bytes.sub_string buffer 0 len in
-        read_response (acc ^ response_part)
-  in
-
-  (* Read all data and close the socket *)
-  let response = read_response "" in
-  Unix.close socket;
-  Draw.set_system_cursor Tsdl.Sdl.System_cursor.arrow;
-  response
 
 let trim_leading_slash s =
   if String.length s > 0 && s.[0] = '/' then
@@ -86,7 +58,8 @@ let rec parse_gopher_response response gopher_view urlbar =
       let on_click _ =
         Widget.set_text urlbar (String.concat "/" [line.server; trim_leading_slash line.selector]);
         History.add_entry (Widget.get_text urlbar);
-        let response = gopher_request line.server line.port line.selector in
+        let request_body = line.selector ^ "\r\n" in
+        let response = network_request line.server line.port request_body in
         parse_gopher_response response gopher_view urlbar in
       Widget.on_click ~click:on_click text;
       [icon; text]

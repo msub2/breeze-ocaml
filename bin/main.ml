@@ -1,6 +1,7 @@
 open Bogue
 open Gopher
 open History
+open Networking
 
 (* Window size constants *)
 let _width = ref 640
@@ -10,7 +11,8 @@ let button_action gopher_view urlbar =
   let url = Widget.get_text urlbar in
   History.add_entry url;
   let (host, port, selector) = parse_gopher_url url in
-  let response = gopher_request host port selector in
+  let request_body = selector ^ "\r\n" in
+  let response = network_request host port request_body in
   parse_gopher_response response gopher_view urlbar
 
 let back_action gopher_view urlbar =
@@ -20,8 +22,10 @@ let back_action gopher_view urlbar =
     let url = History.get_history () in
     if url != "" then 
       let (host, port, selector) = parse_gopher_url url in
-      let response = gopher_request host port selector in
+      let request_body = selector ^ "\r\n" in
+      let response = network_request host port request_body in
       parse_gopher_response response gopher_view urlbar;
+      Widget.set_text urlbar url;
   | false -> ()
 
 let forward_action gopher_view urlbar =
@@ -31,8 +35,10 @@ let forward_action gopher_view urlbar =
     let url = History.get_history () in
     if url != "" then 
       let (host, port, selector) = parse_gopher_url url in
-      let response = gopher_request host port selector in
-      parse_gopher_response response gopher_view urlbar
+      let request_body = selector ^ "\r\n" in
+      let response = network_request host port request_body in
+      parse_gopher_response response gopher_view urlbar;
+      Widget.set_text urlbar url;
   | false -> ()
 
 (* Main Loop *)
