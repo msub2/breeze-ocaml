@@ -42,6 +42,15 @@ let trim_leading_slash s =
   else
     s
 
+let parse_plaintext_response response gopher_view =
+  let height = String.split_on_char '\n' response
+    |> List.length in
+  let text = Widget.text_display response
+    |> Layout.resident ~w:!_width ~h:(height * 18)
+    |> Layout.make_clip ~scrollbar:false ~w:!_width ~h:!_height in
+
+  Layout.set_rooms gopher_view [text]
+
 let rec parse_gopher_response response gopher_view urlbar = 
   let tokens = String.split_on_char '\n' response in
   let lines = List.map build_gopher_line tokens in
@@ -57,10 +66,18 @@ let rec parse_gopher_response response gopher_view urlbar =
       Widget.mouse_over ~enter:(fun _ -> Draw.set_system_cursor Tsdl.Sdl.System_cursor.hand) text;
       let on_click _ =
         Widget.set_text urlbar (String.concat "/" [line.server; trim_leading_slash line.selector]);
-        History.add_entry (Widget.get_text urlbar);
         let request_body = line.selector ^ "\r\n" in
         let response = network_request line.server line.port request_body in
-        parse_gopher_response response gopher_view urlbar in
+        match line.line_kind with
+        | '0' -> 
+          History.add_entry (Widget.get_text urlbar, Plaintext);
+          parse_plaintext_response response gopher_view
+        | '1' -> 
+          History.add_entry (Widget.get_text urlbar, Gopher);
+          parse_gopher_response response gopher_view urlbar
+        | _ -> 
+          History.add_entry (Widget.get_text urlbar, Unknown);
+          parse_plaintext_response response gopher_view in
       Widget.on_click ~click:on_click text;
       [icon; text]
     | 'i' -> [Widget.text_display line.text ~w:!_width ~h:18]

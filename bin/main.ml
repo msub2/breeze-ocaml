@@ -9,37 +9,27 @@ let _height = ref 480
 
 let button_action gopher_view urlbar = 
   let url = Widget.get_text urlbar in
-  History.add_entry url;
+  History.add_entry (url, Gopher);
   let (host, port, selector) = parse_gopher_url url in
   let request_body = selector ^ "\r\n" in
   let response = network_request host port request_body in
   parse_gopher_response response gopher_view urlbar
 
-let back_action gopher_view urlbar =
-  match History.can_go_backward () with
-  | true -> 
-    History.history_back ();
-    let url = History.get_history () in
-    if url != "" then 
-      let (host, port, selector) = parse_gopher_url url in
-      let request_body = selector ^ "\r\n" in
-      let response = network_request host port request_body in
-      parse_gopher_response response gopher_view urlbar;
-      Widget.set_text urlbar url;
-  | false -> ()
+let history_action (action : history_action) gopher_view urlbar = 
+  let can_navigate = match action with 
+  | Forward -> History.can_go_forward ()
+  | Back -> History.can_go_backward () in
 
-let forward_action gopher_view urlbar =
-  match History.can_go_forward () with
-  | true ->
-    History.history_forward ();
-    let url = History.get_history () in
-    if url != "" then 
-      let (host, port, selector) = parse_gopher_url url in
-      let request_body = selector ^ "\r\n" in
-      let response = network_request host port request_body in
-      parse_gopher_response response gopher_view urlbar;
-      Widget.set_text urlbar url;
-  | false -> ()
+  if can_navigate then
+    let _ = match action with 
+    | Forward -> History.history_forward ()
+    | Back -> History.history_back () in
+    let (url, _) = History.get_history () in
+    let (host, port, selector) = parse_gopher_url url in
+    let request_body = selector ^ "\r\n" in
+    let response = network_request host port request_body in
+    parse_gopher_response response gopher_view urlbar;
+    Widget.set_text urlbar url
 
 (* Main Loop *)
 let () =
@@ -50,8 +40,8 @@ let () =
     |> Layout.make_clip ~w:!_width ~h:!_height in
   let urlbar = Widget.text_input ~text:"gopher.floodgap.com" ~prompt:"Enter URL..." () ~size:16 in
   let go_button = Widget.button "Go" ~action:(fun _ -> button_action gopher_view urlbar) in
-  let back_button = Widget.button "<" ~action:(fun _ -> back_action gopher_view urlbar) in
-  let forward_button = Widget.button ">" ~action:(fun _ -> forward_action gopher_view urlbar) in
+  let back_button = Widget.button "<" ~action:(fun _ -> history_action Back gopher_view urlbar) in
+  let forward_button = Widget.button ">" ~action:(fun _ -> history_action Forward gopher_view urlbar) in
   let toolbar = Layout.flat_of_w [back_button; forward_button; urlbar; go_button] ~background:(Layout.color_bg (Draw.transp Draw.grey)) in
   Layout.set_width toolbar !_width;
   button_action gopher_view urlbar;

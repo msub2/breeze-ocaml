@@ -24,7 +24,11 @@ let network_request host port request_body =
   in
 
   (* Read all data and close the socket *)
-  let response = read_response "" in
+  let raw_response = String.trim (read_response "") in
+  print_endline raw_response;
   Unix.close socket;
   Draw.set_system_cursor Tsdl.Sdl.System_cursor.arrow;
+  let response = match String.ends_with ~suffix:"." raw_response with
+  | true -> String.sub raw_response 0 ((String.length raw_response) - 1)
+  | false -> raw_response in
   response
