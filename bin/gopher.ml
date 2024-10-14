@@ -1,4 +1,5 @@
 open Bogue
+open History
 
 (* Window size constants *)
 let _width = ref 640
@@ -15,7 +16,7 @@ type gopher_line = {
 let new_gopher_line line_kind text selector server port = 
   { line_kind; text; selector; server; port }
 
-let parse_gopher_url url = 
+let parse_gopher_url url =
   match String.split_on_char '/' url with
   | host :: selector_parts -> 
       let selector = String.concat "/" selector_parts in
@@ -24,7 +25,6 @@ let parse_gopher_url url =
 
 let build_gopher_line line =
   let chunks = String.split_on_char '\t' line in
-  (* print_string (String.concat "|" chunks); *)
   if (List.length chunks >= 4) then
     let both = List.nth chunks 0 in
     let line_kind = String.get both 0 in
@@ -84,7 +84,8 @@ let rec parse_gopher_response response gopher_view urlbar =
       let text = Widget.rich_text [(Text_display.underline (Text_display.raw line.text))] ~w:!_width ~h:18 in
       Widget.mouse_over ~enter:(fun _ -> Draw.set_system_cursor Tsdl.Sdl.System_cursor.hand) text;
       let on_click _ =
-        Widget.set_text urlbar (String.concat "/" [line.server; String.make 1 line.line_kind; trim_leading_slash line.selector]);
+        Widget.set_text urlbar (String.concat "/" [line.server; trim_leading_slash line.selector]);
+        History.add_entry (Widget.get_text urlbar);
         let response = gopher_request line.server line.port line.selector in
         parse_gopher_response response gopher_view urlbar in
       Widget.on_click ~click:on_click text;
