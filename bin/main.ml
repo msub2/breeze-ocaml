@@ -1,13 +1,14 @@
 open Bogue
 open Gopher
 open History
+open Protocols
 open Networking
 
 (* Window size constants *)
 let _width = ref 640
 let _height = ref 480
 
-let button_action gopher_view urlbar = 
+let go_action gopher_view urlbar = 
   let url = Widget.get_text urlbar in
   History.add_entry (url, Gopher);
   let (host, port, selector) = parse_gopher_url url in
@@ -28,10 +29,10 @@ let history_action (action : history_action) gopher_view urlbar =
     let (host, port, selector) = parse_gopher_url url in
     let request_body = selector ^ "\r\n" in
     let response = network_request host port request_body in
-    match pagetype with
-    | Gopher -> parse_gopher_response response gopher_view urlbar;
-    | Plaintext -> parse_plaintext_response response gopher_view;
-    | _ -> parse_plaintext_response response gopher_view;
+    let _ = match pagetype with
+    | Gopher -> parse_gopher_response response gopher_view urlbar
+    | Plaintext -> parse_plaintext_response response gopher_view
+    | _ -> parse_plaintext_response response gopher_view in
     
     Widget.set_text urlbar url
 
@@ -43,12 +44,12 @@ let () =
     |> Layout.resident ~w:!_width ~h:!_height
     |> Layout.make_clip ~w:!_width ~h:!_height in
   let urlbar = Widget.text_input ~text:"gopher.floodgap.com" ~prompt:"Enter URL..." () ~size:16 in
-  let go_button = Widget.button "Go" ~action:(fun _ -> button_action gopher_view urlbar) in
+  let go_button = Widget.button "Go" ~action:(fun _ -> go_action gopher_view urlbar) in
   let back_button = Widget.button "<" ~action:(fun _ -> history_action Back gopher_view urlbar) in
   let forward_button = Widget.button ">" ~action:(fun _ -> history_action Forward gopher_view urlbar) in
   let toolbar = Layout.flat_of_w [back_button; forward_button; urlbar; go_button] ~background:(Layout.color_bg (Draw.transp Draw.grey)) in
   Layout.set_width toolbar !_width;
-  button_action gopher_view urlbar;
+  go_action gopher_view urlbar;
 
   [toolbar; gopher_view]
     |> Layout.tower ~name:"Breeze - A SmolNet Browser"

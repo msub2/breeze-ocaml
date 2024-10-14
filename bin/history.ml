@@ -1,14 +1,5 @@
 open Utils
-
-type pagetype = 
-  | Plaintext
-  | Gopher
-  | GopherPlus
-  | Gemini
-  | Spartan
-  | Guppy
-  | Nex
-  | Unknown
+open Protocols
 
 type history_action = 
   | Forward
@@ -19,9 +10,11 @@ module History = struct
   let history_index = ref 0
 
   let add_entry entry =
-    history_index := (List.length !history);
-    history := entry :: !history
-
+    (* Trim the history to the current point (discard any "forward" entries) *)
+    let new_history = (Utils.take (!history_index + 1) (List.rev !history)) in
+    history := entry :: new_history;
+    history_index := List.length new_history
+  
   let history_forward () =
     history_index := Utils.clamp 0 ((List.length !history) - 1) (!history_index + 1)
 
