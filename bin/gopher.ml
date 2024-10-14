@@ -55,6 +55,8 @@ let get_icon line_kind =
   match line_kind with
     | '0' -> "file-text"
     | '1' -> "folder-open"
+    | '2' -> "phone"
+    | 'h' -> "globe"
     | _ -> "question"
 
 let rec parse_gopher_response response gopher_view urlbar = 
@@ -62,7 +64,7 @@ let rec parse_gopher_response response gopher_view urlbar =
   let lines = List.map build_gopher_line tokens in
   let style_line line =
     let line_widgets = match line.line_kind with
-    | '0' | '1' -> 
+    | '0' | '1' | 'h' -> 
       let icon = get_icon line.line_kind |> Widget.icon in
       let text = Widget.rich_text [(Text_display.underline (Text_display.raw line.text))] ~w:!_width ~h:18 in
       Widget.mouse_over ~enter:(fun _ -> Draw.set_system_cursor Tsdl.Sdl.System_cursor.hand) text;
@@ -72,7 +74,7 @@ let rec parse_gopher_response response gopher_view urlbar =
         let request_body = line.selector ^ "\r\n" in
         let response = network_request line.server line.port request_body in
         match line.line_kind with
-        | '0' -> 
+        | '0' | 'h' -> 
           History.add_entry (Widget.get_text urlbar, Plaintext);
           parse_plaintext_response response gopher_view
         | '1' -> 
@@ -80,6 +82,11 @@ let rec parse_gopher_response response gopher_view urlbar =
           parse_gopher_response response gopher_view urlbar
         | _ -> () in (* Unreachable *)
       Widget.on_click ~click:on_click text;
+      [icon; text]
+    | '2' ->
+      let icon = get_icon line.line_kind |> Widget.icon in
+      let description = Text_display.strikethrough (Text_display.raw (String.trim line.text)) in
+      let text = Widget.rich_text [description] ~w:!_width ~h:18 in
       [icon; text]
     | '7' -> 
       let text = Widget.text_display line.text in
@@ -95,12 +102,13 @@ let rec parse_gopher_response response gopher_view urlbar =
       [text; search_field; go_button]
     | 'i' -> [Widget.text_display line.text ~w:!_width ~h:18]
     | _ -> 
+      print_endline ("Unhandled line type: " ^ Char.escaped line.line_kind);
       let icon = Widget.icon "question" in
       let text = Widget.rich_text [(Text_display.italic (Text_display.raw line.text))] ~w:!_width ~h:18 in
       [icon; text] in
     Layout.flat_of_w line_widgets ~sep:0 in
   let widgets = List.map style_line lines
     |> Layout.tower
-    |> Layout.make_clip ~scrollbar:false ~w:!_width ~h:(!_height - 0) in
+    |> Layout.make_clip ~scrollbar:false ~w:!_width ~h:!_height in
 
   Layout.set_rooms gopher_view [widgets]
