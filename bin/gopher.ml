@@ -13,21 +13,14 @@ type gopher_line = {
 };;
 
 let new_gopher_line line_kind text selector server port = 
-  let line = {
-    line_kind = line_kind;
-    text = text; 
-    selector = selector; 
-    server = server; 
-    port = port;
-  } in
-  line
+  { line_kind; text; selector; server; port }
 
 let parse_gopher_url url = 
-  let chunks = String.split_on_char '/' url in
-  let host = List.nth chunks 0 in
-  let selector = String.concat "/" (List.tl chunks) in
-  let port = 70 in
-  (host, port, selector)
+  match String.split_on_char '/' url with
+  | host :: selector_parts -> 
+      let selector = String.concat "/" selector_parts in
+      (host, 70, selector)
+  | [] -> failwith "Invalid URL"
 
 let build_gopher_line line =
   let chunks = String.split_on_char '\t' line in
@@ -81,9 +74,13 @@ let rec parse_gopher_response response gopher_view urlbar =
   let tokens = String.split_on_char '\n' response in
   let lines = List.map build_gopher_line tokens in
   let style_line line =
+    let icon = match line.line_kind with
+    | '0' -> "file-text"
+    | '1' -> "folder-open"
+    | _ -> "question" in
     let line_widgets = match line.line_kind with
     | '0' | '1' -> 
-      let icon = Widget.icon (if line.line_kind = '0' then "file-text" else "folder-open") in
+      let icon = Widget.icon icon in
       let text = Widget.rich_text [(Text_display.underline (Text_display.raw line.text))] ~w:!_width ~h:18 in
       Widget.mouse_over ~enter:(fun _ -> Draw.set_system_cursor Tsdl.Sdl.System_cursor.hand) text;
       let on_click _ =
