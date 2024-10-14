@@ -30,7 +30,7 @@ let build_gopher_line line =
     let both = List.nth chunks 0 in
     let line_kind = String.get both 0 in
     let text = String.sub both 1 (String.length both - 1) in
-    let gopher_line = new_gopher_line 
+    let gopher_line = new_gopher_line
       line_kind text (List.nth chunks 1) (List.nth chunks 2) (Option.value (int_of_string_opt (List.nth chunks 3)) ~default:70) in
     gopher_line
   else
@@ -65,7 +65,8 @@ let rec parse_gopher_response response gopher_view urlbar =
       let text = Widget.rich_text [(Text_display.underline (Text_display.raw line.text))] ~w:!_width ~h:18 in
       Widget.mouse_over ~enter:(fun _ -> Draw.set_system_cursor Tsdl.Sdl.System_cursor.hand) text;
       let on_click _ =
-        Widget.set_text urlbar (String.concat "/" [line.server; trim_leading_slash line.selector]);
+        String.concat "/" [line.server; trim_leading_slash line.selector]
+          |> Widget.set_text urlbar;
         let request_body = line.selector ^ "\r\n" in
         let response = network_request line.server line.port request_body in
         match line.line_kind with
