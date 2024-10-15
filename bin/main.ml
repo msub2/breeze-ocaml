@@ -10,7 +10,7 @@ let _height = ref 480
 
 let go_action gopher_view urlbar = 
   let url = Widget.get_text urlbar in
-  History.add_entry (url, Gopher);
+  History.add_entry (url, Gophermap);
   let (host, port, selector) = parse_gopher_url url in
   let request_body = selector ^ "\r\n" in
   let response = network_request host port request_body in
@@ -25,13 +25,16 @@ let history_action (action : history_action) gopher_view urlbar =
     let _ = match action with 
     | Forward -> History.history_forward ()
     | Back -> History.history_back () in
-    let (url, pagetype) = History.get_history () in
+    let (url, content_type) = History.get_history () in
     let (host, port, selector) = parse_gopher_url url in
     let request_body = selector ^ "\r\n" in
     let response = network_request host port request_body in
-    let _ = match pagetype with
-    | Gopher -> parse_gopher_response response gopher_view urlbar
+    let _ = match content_type with
+    | Gophermap -> parse_gopher_response response gopher_view urlbar
     | Plaintext -> parse_plaintext_response response gopher_view
+    | Image -> 
+      let filename = List.nth (List.rev (String.split_on_char '/' selector)) 0 in
+      parse_image_response filename response gopher_view
     | _ -> parse_plaintext_response response gopher_view in
     
     Widget.set_text urlbar url

@@ -6,7 +6,7 @@ type history_action =
   | Back
 
 module History = struct
-  let history : (string * pagetype) list ref = ref []
+  let history : (string * content_type) list ref = ref []
   let history_index = ref 0
 
   let add_entry entry =

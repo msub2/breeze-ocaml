@@ -7,3 +7,11 @@ type pagetype =
   | Guppy
   | Nex
   | Unknown
+
+type content_type = 
+  | Plaintext
+  | Image
+  | Gophermap
+  | Gemtext
+  | HTML
+  | Unknown
