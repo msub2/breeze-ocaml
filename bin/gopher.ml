@@ -1,6 +1,7 @@
 open Bogue
 open History
 open Networking
+open Helpers
 
 (* Window size constants *)
 let _width = ref 640
@@ -28,12 +29,6 @@ let build_gopher_line line =
     gopher_line
   else
     new_gopher_line 'i' line "" "" 70
-
-let trim_leading_slash s =
-  if String.length s > 0 && s.[0] = '/' then
-    String.sub s 1 (String.length s - 1)
-  else
-    s
 
 let parse_plaintext_response response gopher_view =
   let height = String.split_on_char '\n' response
@@ -89,7 +84,7 @@ let rec parse_gopher_response response gopher_view urlbar =
       let text = Widget.rich_text [(Text_display.underline (Text_display.raw line.text))] ~w:!_width ~h:18 in
       Widget.mouse_over ~enter:(fun _ -> Draw.set_system_cursor Tsdl.Sdl.System_cursor.hand) text;
       let on_click _ =
-        let url = String.concat "/" ["gopher://" ^ line.server; trim_leading_slash line.selector] in
+        let url = String.concat "/" ["gopher://" ^ line.server; Helpers.trim_leading_slash line.selector] in
         Widget.set_text urlbar url;
         let request_body = line.selector ^ "\r\n" in
         let response = network_request line.server line.port request_body in
