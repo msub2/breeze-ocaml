@@ -1,7 +1,7 @@
 open Bogue
 open History
-open Networking
 open Helpers
+open Protocols
 
 (* Window size constants *)
 let _width = ref 640

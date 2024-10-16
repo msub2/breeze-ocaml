@@ -2,7 +2,6 @@ open Bogue
 open Gopher
 open History
 open Protocols
-open Networking
 open Url
 
 (* Window size constants *)
