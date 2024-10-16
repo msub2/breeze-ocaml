@@ -1,4 +1,5 @@
-type pagetype = 
+(* Not yet used *)
+type protocol = 
   | Plaintext
   | Gopher
   | GopherPlus
