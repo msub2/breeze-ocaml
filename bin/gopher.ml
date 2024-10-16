@@ -17,13 +17,6 @@ type gopher_line = {
 let new_gopher_line line_kind text selector server port = 
   { line_kind; text; selector; server; port }
 
-let parse_gopher_url url =
-  match String.split_on_char '/' url with
-  | host :: selector_parts -> 
-      let request_body = String.concat "/" selector_parts in
-      (host, 70, request_body)
-  | [] -> failwith "Invalid URL"
-
 let build_gopher_line line =
   let chunks = String.split_on_char '\t' line in
   if (List.length chunks >= 4) then
@@ -34,7 +27,7 @@ let build_gopher_line line =
       line_kind text (List.nth chunks 1) (List.nth chunks 2) (Option.value (int_of_string_opt (List.nth chunks 3)) ~default:70) in
     gopher_line
   else
-    new_gopher_line 'i' "" "" "" 70
+    new_gopher_line 'i' line "" "" 70
 
 let trim_leading_slash s =
   if String.length s > 0 && s.[0] = '/' then
@@ -97,19 +90,19 @@ let rec parse_gopher_response response gopher_view urlbar =
       let text = Widget.rich_text [(Text_display.underline (Text_display.raw line.text))] ~w:!_width ~h:18 in
       Widget.mouse_over ~enter:(fun _ -> Draw.set_system_cursor Tsdl.Sdl.System_cursor.hand) text;
       let on_click _ =
-        String.concat "/" [line.server; trim_leading_slash line.selector]
-          |> Widget.set_text urlbar;
+        let url = String.concat "/" ["gopher://" ^ line.server; trim_leading_slash line.selector] in
+        Widget.set_text urlbar url;
         let request_body = line.selector ^ "\r\n" in
         let response = network_request line.server line.port request_body in
         match line.line_kind with
         | '0' | 'h' -> 
-          History.add_entry (Widget.get_text urlbar, Plaintext);
+          History.add_entry (url, Plaintext);
           parse_plaintext_response response gopher_view
         | '1' -> 
-          History.add_entry (Widget.get_text urlbar, Gophermap);
+          History.add_entry (url, Gophermap);
           parse_gopher_response response gopher_view urlbar
         | 'I' | 'p' ->
-          History.add_entry (Widget.get_text urlbar, Image);
+          History.add_entry (url, Image);
           parse_image_response line.text response gopher_view
         | _ -> () in (* Unreachable *)
       Widget.on_click ~click:on_click text;
@@ -122,7 +115,7 @@ let rec parse_gopher_response response gopher_view urlbar =
       let text = Widget.text_display line.text in
       let search_field = Widget.text_input () in
       let search_action _ =
-        line.server ^ line.selector ^ "\t" ^ Widget.get_text search_field ^ "\r\n"
+        "gopher://" ^ line.server ^ line.selector ^ "\t" ^ Widget.get_text search_field ^ "\r\n"
           |> Widget.set_text urlbar;
         let request_body = line.selector ^ "\t" ^ Widget.get_text search_field ^ "\r\n" in
         let response = network_request line.server line.port request_body in

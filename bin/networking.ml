@@ -5,7 +5,14 @@ let network_request host port request_body =
 
   (* Create a socket and connect to the server *)
   let socket = Unix.socket PF_INET SOCK_STREAM 0 in
-  let server_addr = (Unix.gethostbyname host).h_addr_list.(0) in
+  let server_addr = 
+    try 
+      (Unix.gethostbyname host).h_addr_list.(0)
+    with 
+    | Not_found ->
+      print_endline ("Host not found: " ^ host);
+      raise (Failure "Error: Could not connect")
+  in
   let server_sockaddr = Unix.ADDR_INET (server_addr, port) in
   Unix.connect socket server_sockaddr;
 
