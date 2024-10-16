@@ -17,7 +17,6 @@ let go_action gopher_view urlbar =
   | Failure _ -> ("gopher.floodgap.com", 70, "\r\n") in
   let request_body = selector ^ "\r\n" in
   let response = try network_request host port request_body with Failure message -> message in
-  print_endline response;
   parse_gopher_response response gopher_view urlbar
 
 let history_action (action : history_action) gopher_view urlbar = 

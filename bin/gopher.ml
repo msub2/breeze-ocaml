@@ -85,8 +85,7 @@ let rec parse_gopher_response response gopher_view urlbar =
   let style_line line =
     let icon = get_icon line.line_kind |> Widget.icon in
     let line_widgets = match line.line_kind with
-    (* Interactive types *)
-    | '0' | '1' | 'h' | 'I' | 'p' -> 
+    | '0' | '1' | 'h' | 'I' | 'p' | 'g' -> (* Link types *)
       let text = Widget.rich_text [(Text_display.underline (Text_display.raw line.text))] ~w:!_width ~h:18 in
       Widget.mouse_over ~enter:(fun _ -> Draw.set_system_cursor Tsdl.Sdl.System_cursor.hand) text;
       let on_click _ =
@@ -101,17 +100,20 @@ let rec parse_gopher_response response gopher_view urlbar =
         | '1' -> 
           History.add_entry (url, Gophermap);
           parse_gopher_response response gopher_view urlbar
-        | 'I' | 'p' ->
+        | 'I' | 'p' | 'g' ->
           History.add_entry (url, Image);
           parse_image_response line.text response gopher_view
         | _ -> () in (* Unreachable *)
       Widget.on_click ~click:on_click text;
       [icon; text]
-    | '2' ->
+    | '2' -> (* CSO, leaving struckthrough to indicate it's not usable in Breeze *)
       let description = Text_display.strikethrough (Text_display.raw (String.trim line.text)) in
       let text = Widget.rich_text [description] ~w:!_width ~h:18 in
       [icon; text]
-    | '7' -> 
+    | '3' -> (* Server error message *)
+      let text = Widget.rich_text [(Text_display.italic (Text_display.raw line.text))] ~w:!_width ~h:18 in
+      [icon; text]
+    | '7' -> (* Search *)
       let text = Widget.text_display line.text in
       let search_field = Widget.text_input () in
       let search_action _ =
@@ -123,10 +125,10 @@ let rec parse_gopher_response response gopher_view urlbar =
         parse_gopher_response response gopher_view urlbar in
       let search_button = Widget.button ~action:(fun _ -> search_action ())"Search" in
       [icon; text; search_field; search_button]
-    | 'i' -> 
+    | 'i' -> (* Regular text *)
       let box = Widget.box ~w:18 ~h:18 () in
       [box; Widget.text_display line.text ~w:!_width ~h:18]
-    | _ -> 
+    | _ -> (* Any of the other currently unhandled types *)
       print_endline ("Unhandled line type: " ^ Char.escaped line.line_kind);
       let text = Widget.rich_text [(Text_display.italic (Text_display.raw line.text))] ~w:!_width ~h:18 in
       [icon; text] in

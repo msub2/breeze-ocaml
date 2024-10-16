@@ -23,7 +23,6 @@ let parse_gopher_url url =
 (** Takes in a URL and attempts to extract the necessary parameters to pass
     to the actual network request *)
 let parse_url url = 
-  print_endline ("Parsing URL: " ^ url);
   match url with
   | url when String.starts_with ~prefix:"gopher://" url -> parse_gopher_url (String.sub url 9 (String.length url - 9))
   | _ ->  "Bad URL: " ^ url |> failwith;
