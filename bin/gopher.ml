@@ -130,10 +130,11 @@ let rec parse_gopher_response response gopher_view urlbar =
         parse_gopher_response response gopher_view urlbar in
       let search_button = Widget.button ~action:(fun _ -> search_action ())"Search" in
       [icon; text; search_field; search_button]
-    | 'i' -> [Widget.text_display line.text ~w:!_width ~h:18]
+    | 'i' -> 
+      let box = Widget.box ~w:18 ~h:18 () in
+      [box; Widget.text_display line.text ~w:!_width ~h:18]
     | _ -> 
       print_endline ("Unhandled line type: " ^ Char.escaped line.line_kind);
-      let icon = Widget.icon "question" in
       let text = Widget.rich_text [(Text_display.italic (Text_display.raw line.text))] ~w:!_width ~h:18 in
       [icon; text] in
     Layout.flat_of_w line_widgets ~sep:0 in
