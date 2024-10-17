@@ -30,16 +30,16 @@ let build_gopher_line line =
   else
     new_gopher_line 'i' line "" "" 70
 
-let parse_plaintext_response response gopher_view =
+let parse_plaintext_response response breeze_view =
   let height = String.split_on_char '\n' response
     |> List.length in
   let text = Widget.text_display response
     |> Layout.resident ~w:!_width ~h:(height * 18)
     |> Layout.make_clip ~scrollbar:false ~w:!_width ~h:!_height in
 
-  Layout.set_rooms gopher_view [text]
+  Layout.set_rooms breeze_view [text]
 
-let parse_image_response filename response gopher_view = 
+let parse_image_response filename response breeze_view = 
   let file_path = "_cache/" ^ filename in
   let exists = Sys.file_exists file_path in
   let _ = if not exists then
@@ -51,7 +51,7 @@ let parse_image_response filename response gopher_view =
     |> Layout.resident
     |> Layout.make_clip ~scrollbar:false ~w:!_width ~h:!_height in
   
-  Layout.set_rooms gopher_view [image]
+  Layout.set_rooms breeze_view [image]
 
 let get_icon line_kind = 
   match line_kind with
@@ -74,7 +74,7 @@ let get_icon line_kind =
     | 'p' -> "image" (* PNG *)
     | _ -> "question"
 
-let rec parse_gopher_response response gopher_view urlbar = 
+let rec parse_gopher_response response breeze_view urlbar = 
   let tokens = String.split_on_char '\n' response in
   let lines = List.map build_gopher_line tokens in
   let style_line line =
@@ -91,13 +91,13 @@ let rec parse_gopher_response response gopher_view urlbar =
         match line.line_kind with
         | '0' | 'h' -> 
           History.add_entry (url, Plaintext);
-          parse_plaintext_response response gopher_view
+          parse_plaintext_response response breeze_view
         | '1' -> 
           History.add_entry (url, Gophermap);
-          parse_gopher_response response gopher_view urlbar
+          parse_gopher_response response breeze_view urlbar
         | 'I' | 'p' | 'g' ->
           History.add_entry (url, Image);
-          parse_image_response line.text response gopher_view
+          parse_image_response line.text response breeze_view
         | _ -> () in (* Unreachable *)
       Widget.on_click ~click:on_click text;
       [icon; text]
@@ -117,7 +117,7 @@ let rec parse_gopher_response response gopher_view urlbar =
         let request_body = line.selector ^ "\t" ^ Widget.get_text search_field ^ "\r\n" in
         let response = network_request line.server line.port request_body in
         History.add_entry (Widget.get_text urlbar, Gophermap);
-        parse_gopher_response response gopher_view urlbar in
+        parse_gopher_response response breeze_view urlbar in
       let search_button = Widget.button ~action:(fun _ -> search_action ())"Search" in
       [icon; text; search_field; search_button]
     | 'i' -> (* Regular text *)
@@ -132,4 +132,4 @@ let rec parse_gopher_response response gopher_view urlbar =
     |> Layout.tower
     |> Layout.make_clip ~scrollbar:false ~w:!_width ~h:!_height in
 
-  Layout.set_rooms gopher_view [widgets]
+  Layout.set_rooms breeze_view [widgets]
