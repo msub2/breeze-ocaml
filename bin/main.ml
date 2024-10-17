@@ -56,7 +56,7 @@ let () =
   let gopher_view = gopherview_widget
     |> Layout.resident ~w:!_width ~h:!_height
     |> Layout.make_clip ~w:!_width ~h:!_height in
-  let urlbar = Widget.text_input ~text:"gemini://geminiprotocol.net/" ~prompt:"Enter URL..." () ~size:16 in
+  let urlbar = Widget.text_input ~text:"gemini://geminiprotocol.net/docs/gemtext-specification.gmi" ~prompt:"Enter URL..." () ~size:16 in
   let go_button = Widget.button "Go" ~action:(fun _ -> go_action gopher_view urlbar) in
   let back_button = Widget.button "<" ~action:(fun _ -> history_action Back gopher_view urlbar) in
   let forward_button = Widget.button ">" ~action:(fun _ -> history_action Forward gopher_view urlbar) in
