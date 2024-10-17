@@ -1,4 +1,4 @@
 (executable
  (public_name breeze)
  (name main)
- (libraries breeze unix bogue))
+ (libraries breeze unix bogue tls mirage-crypto-rng mirage-crypto-rng.unix))

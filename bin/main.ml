@@ -15,12 +15,13 @@ let go_action gopher_view urlbar =
   | Success (host, port, request_body, protocol) -> (host, port, request_body, protocol)
   | Failure _ -> ("gopher.floodgap.com", 70, "\r\n", Gopher) in
   let request_body = selector ^ "\r\n" in
-  let response = try network_request host port request_body with Failure message -> message in
+  (* Update this as needed *)
+  let ssl = protocol == Gemini in
+  let response = try network_request ~ssl host port request_body with Failure message -> message in
   match protocol with
   | Gopher -> parse_gopher_response response gopher_view urlbar
   | Gemini -> parse_plaintext_response response gopher_view
   | _ -> parse_plaintext_response response gopher_view
-  
 
 let history_action (action : history_action) gopher_view urlbar = 
   let can_navigate = match action with 
@@ -50,11 +51,12 @@ let history_action (action : history_action) gopher_view urlbar =
 (* Main Loop *)
 let () =
   Theme.set_text_font "./Inconsolata.ttf";
+  Mirage_crypto_rng_unix.initialize (module Mirage_crypto_rng.Fortuna);
   let gopherview_widget = Widget.text_display "" in
   let gopher_view = gopherview_widget
     |> Layout.resident ~w:!_width ~h:!_height
     |> Layout.make_clip ~w:!_width ~h:!_height in
-  let urlbar = Widget.text_input ~text:"gemini://geminiprotocol.net/docs/protocol-specification.gmi" ~prompt:"Enter URL..." () ~size:16 in
+  let urlbar = Widget.text_input ~text:"gemini://geminiprotocol.net/" ~prompt:"Enter URL..." () ~size:16 in
   let go_button = Widget.button "Go" ~action:(fun _ -> go_action gopher_view urlbar) in
   let back_button = Widget.button "<" ~action:(fun _ -> history_action Back gopher_view urlbar) in
   let forward_button = Widget.button ">" ~action:(fun _ -> history_action Forward gopher_view urlbar) in
