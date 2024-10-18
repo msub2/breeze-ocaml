@@ -1,5 +1,6 @@
 open Bogue
 open Gopher
+open Gemini
 open History
 open Protocols
 open Url
@@ -20,7 +21,7 @@ let go_action breeze_view urlbar =
   let response = try network_request ~ssl host port request_body with Failure message -> message in
   match protocol with
   | Gopher -> parse_gopher_response response breeze_view urlbar
-  | Gemini -> parse_plaintext_response response breeze_view
+  | Gemini -> parse_gemini_response response breeze_view urlbar
   | _ -> parse_plaintext_response response breeze_view
 
 let history_action (action : history_action) breeze_view urlbar = 

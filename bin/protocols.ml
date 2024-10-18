@@ -52,7 +52,7 @@ let network_request ?(ssl = false) host port request_body =
     (* Function to handle the TLS handshake *)
     let rec handshake tls_state =
       (* Receive data from the server *)
-      let buffer = Bytes.create 4096 in
+      let buffer = Bytes.create 16384 in
       let len = Unix.recv socket buffer 0 (Bytes.length buffer) [] in
       let server_response = Bytes.sub_string buffer 0 len in
 
@@ -85,7 +85,7 @@ let network_request ?(ssl = false) host port request_body =
     in
 
     let receive_data tls_state =
-      let buffer = Bytes.create 4096 in
+      let buffer = Bytes.create 16384 in
       let len = Unix.recv socket buffer 0 (Bytes.length buffer) [] in
       let server_response = Bytes.sub_string buffer 0 len in
 
@@ -103,13 +103,14 @@ let network_request ?(ssl = false) host port request_body =
 
     (* Close the socket *)
     Unix.close socket;
+    print_endline response;
     response
   | false ->
     (* Send the request *)
     let _ = Unix.send socket (Bytes.of_string request_body) 0 (String.length request_body) [] in
 
     (* Buffer to store the entire response *)
-    let buffer_size = 4096 in
+    let buffer_size = 16384 in
     let buffer = Bytes.create buffer_size in
     let rec read_response acc =
       match Unix.recv socket buffer 0 buffer_size [] with
