@@ -77,7 +77,7 @@ let build_gemini_line line =
 
 let get_wrapped_line_count size content =
   let length = String.length content |> float_of_int in
-  let glyphs_per_line = Float.div (float_of_int !_width) (float_of_int size) in
+  let glyphs_per_line = float_of_int size +. float_of_int !_width /. float_of_int size in
   let lines = length /. glyphs_per_line |> Float.round |> int_of_float in
   max lines 1
 
@@ -145,7 +145,7 @@ let rec parse_gemini_response response breeze_view urlbar =
 
   let widgets = List.map style_line lines
     |> List.filter (fun layout -> Layout.height layout > 10)
-    |> Layout.tower 
+    |> Layout.tower ~sep:0
     |> Layout.make_clip ~scrollbar:false ~w:!_width ~h:!_height in
 
   Layout.set_rooms breeze_view [widgets]

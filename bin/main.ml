@@ -18,6 +18,7 @@ let go_action breeze_view urlbar =
   (* Update this as needed *)
   let ssl = protocol == Gemini in
   let response = try network_request ~ssl host port request_body with Failure message -> message in
+  (* The assumptions here are outdated, need to account for resource links in history now *)
   match protocol with
   | Gopher -> 
     History.add_entry (url, Gophermap);
