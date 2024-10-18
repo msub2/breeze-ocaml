@@ -94,7 +94,7 @@ let network_request ?(ssl = false) host port request_body =
       | Ok (new_state, None, _, `Data (Some data)) -> 
         let (new_new_state, new_data) = receive_data new_state in
         (new_new_state, data ^ new_data)
-      | Ok (_, _, _, `Data None) -> failwith "Error: No data received"
+      | Ok (_, _, _, `Data None) -> failwith "Error: No data received" (* TODO: Figure out what to actually do here *)
       | Error (alert, _) -> failwith ("TLS error: " ^ Tls.Engine.string_of_failure alert)
     in
 

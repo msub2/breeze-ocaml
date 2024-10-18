@@ -1,4 +1,5 @@
 open Bogue
+open Helpers
 open History
 open Protocols
 
@@ -109,7 +110,12 @@ let rec parse_gemini_response response breeze_view urlbar =
         | url when String.starts_with ~prefix:"gemini://" line.content -> url (* Absolute URL *)
         | _ -> (* Relative URL *)
           let current_url = Widget.get_text urlbar in
-          current_url ^ line.content in
+          let uri = Uri.of_string current_url in
+          let path = Uri.path uri in
+          let path_components = String.split_on_char '/' path in
+          let all_but_last = Helpers.take (max (List.length path_components - 1) 0) path_components in
+          let new_path = List.nth all_but_last 0 ^ "/" ^ line.content in
+          Uri.with_uri ~path:(Some new_path) uri |> Uri.to_string in
         Widget.set_text urlbar url;
         let request_body = url ^ "\r\n" in
         let server = List.nth (String.split_on_char '/' url) 2 in

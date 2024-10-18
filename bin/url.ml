@@ -34,7 +34,12 @@ let parse_gemini_url url =
 (** Takes in a URL and attempts to extract the necessary parameters to pass
     to the actual network request *)
 let parse_url url = 
-  match url with
-  | url when String.starts_with ~prefix:"gopher://" url -> parse_gopher_url (String.sub url 9 (String.length url - 9))
-  | url when String.starts_with ~prefix:"gemini://" url -> parse_gemini_url (String.sub url 9 (String.length url - 9))
+  let uri = Uri.of_string url in
+  let host = match Uri.host uri with
+  | Some host -> host
+  | None -> failwith "bad host" in
+  let path = Uri.path uri in
+  match Uri.scheme uri with
+  | Some "gopher" -> parse_gopher_url (host ^ path)
+  | Some "gemini" -> parse_gemini_url (host ^ path)
   | _ ->  "Bad URL: " ^ url |> failwith;
