@@ -105,11 +105,15 @@ let rec parse_gemini_response response breeze_view urlbar =
       let text = Widget.rich_text [(Text_display.underline (Text_display.raw description))] ~w:!_width ~h:18 in
       Widget.mouse_over ~enter:(fun _ -> Draw.set_system_cursor Tsdl.Sdl.System_cursor.hand) text;
       let on_click _ =
-        let url = line.content in
+        let url = match line.content with
+        | url when String.starts_with ~prefix:"gemini://" line.content -> url (* Absolute URL *)
+        | _ -> (* Relative URL *)
+          let current_url = Widget.get_text urlbar in
+          current_url ^ line.content in
         Widget.set_text urlbar url;
         let request_body = url ^ "\r\n" in
         let server = List.nth (String.split_on_char '/' url) 2 in
-        let response = network_request server 1965 request_body in
+        let response = network_request ~ssl:true server 1965 request_body in
         History.add_entry (url, Gemtext);
         parse_gemini_response response breeze_view urlbar in
       Widget.on_click ~click:on_click text;

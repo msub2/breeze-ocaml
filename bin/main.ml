@@ -11,7 +11,6 @@ let _height = ref 480
 
 let go_action breeze_view urlbar = 
   let url = Widget.get_text urlbar in
-  History.add_entry (url, Gophermap);
   let (host, port, selector, protocol) = match parse_url url with
   | Success (host, port, request_body, protocol) -> (host, port, request_body, protocol)
   | Failure _ -> ("gopher.floodgap.com", 70, "\r\n", Gopher) in
@@ -20,8 +19,12 @@ let go_action breeze_view urlbar =
   let ssl = protocol == Gemini in
   let response = try network_request ~ssl host port request_body with Failure message -> message in
   match protocol with
-  | Gopher -> parse_gopher_response response breeze_view urlbar
-  | Gemini -> parse_gemini_response response breeze_view urlbar
+  | Gopher -> 
+    History.add_entry (url, Gophermap);
+    parse_gopher_response response breeze_view urlbar
+  | Gemini -> 
+    History.add_entry (url, Gemtext);
+    parse_gemini_response response breeze_view urlbar
   | _ -> parse_plaintext_response response breeze_view
 
 let history_action (action : history_action) breeze_view urlbar = 
@@ -34,13 +37,16 @@ let history_action (action : history_action) breeze_view urlbar =
     | Forward -> History.history_forward ()
     | Back -> History.history_back () in
     let (url, content_type) = History.get_history () in
-    let (host, port, selector, _) = match parse_url url with
+    let (host, port, selector, protocol) = match parse_url url with
     | Success (host, port, request_body, protocol) -> (host, port, request_body, protocol)
     | Failure _ -> ("gopher.floodgap.com", 70, "\r\n", Gopher) in
     let request_body = selector ^ "\r\n" in
-    let response = try network_request host port request_body with Failure message -> message in
+    (* Update this as needed *)
+    let ssl = protocol == Gemini in
+    let response = try network_request ~ssl host port request_body with Failure message -> message in
     let _ = match content_type with
     | Gophermap -> parse_gopher_response response breeze_view urlbar
+    | Gemtext -> parse_gemini_response response breeze_view urlbar
     | Plaintext -> parse_plaintext_response response breeze_view
     | Image -> 
       let filename = List.nth (List.rev (String.split_on_char '/' selector)) 0 in

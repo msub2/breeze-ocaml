@@ -22,8 +22,8 @@ let parse_gopher_url url =
     Success (host, 70, request_body, Gopher)
   | [] -> Failure Malformed
 
-(** Extracts the host, port, and selector from a gopher URL.
-    This assumes that the gopher:// prefix has already been stripped. *)
+(** Extracts the host, port, and selector from a gemini URL.
+    This assumes that the gemini:// prefix has already been stripped. *)
 let parse_gemini_url url =
   (* TODO: More stringent parsing *)
   match String.split_on_char '/' url with
