@@ -33,13 +33,10 @@ let parse_gemini_url url =
 
 (** Extracts the host, port, and selector from a spartan URL.
     This assumes that the spartan:// prefix has already been stripped. *)
-let parse_spartan_url url =
+let parse_spartan_url host path =
   (* TODO: More stringent parsing *)
-  match String.split_on_char '/' url with
-  | host :: path -> 
-    let request_body = String.concat " " [host; "/" ^ String.concat "" path; "0"] in
-    Success (host, 300, request_body, Spartan)
-  | [] -> Failure Malformed
+  let request_body = String.concat " " [host; "/" ^ path; "0\r\n"] in
+  Success (host, 300, request_body, Spartan)
 
 (** Takes in a URL and attempts to extract the necessary parameters to pass
     to the actual network request *)
@@ -52,5 +49,5 @@ let parse_url url =
   match Uri.scheme uri with
   | Some "gopher" -> parse_gopher_url (host ^ path)
   | Some "gemini" -> parse_gemini_url (host ^ path)
-  | Some "spartan" -> parse_spartan_url (host ^ path)
+  | Some "spartan" -> parse_spartan_url host path
   | _ ->  "Bad URL: " ^ url |> failwith;

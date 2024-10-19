@@ -23,9 +23,12 @@ let go_action breeze_view urlbar =
   | Gopher -> 
     History.add_entry (url, Gophermap);
     parse_gopher_response response breeze_view urlbar
-  | Gemini | Spartan -> 
+  | Gemini ->
     History.add_entry (url, Gemtext);
-    parse_gemini_response response breeze_view urlbar
+    parse_gemtext_response response breeze_view urlbar Gemini
+  | Spartan -> 
+    History.add_entry (url, Gemtext);
+    parse_gemtext_response response breeze_view urlbar Spartan
   | _ -> parse_plaintext_response response breeze_view
 
 let history_action (action : history_action) breeze_view urlbar = 
@@ -47,7 +50,7 @@ let history_action (action : history_action) breeze_view urlbar =
     let response = try network_request ~ssl host port request_body with Failure message -> message in
     let _ = match content_type with
     | Gophermap -> parse_gopher_response response breeze_view urlbar
-    | Gemtext -> parse_gemini_response response breeze_view urlbar
+    | Gemtext -> parse_gemtext_response response breeze_view urlbar protocol
     | Plaintext -> parse_plaintext_response response breeze_view
     | Image -> 
       let filename = List.nth (List.rev (String.split_on_char '/' selector)) 0 in

@@ -2,6 +2,7 @@ open Bogue
 open Helpers
 open History
 open Protocols
+open Url
 
 (* Window size constants *)
 let _width = ref 640
@@ -92,7 +93,7 @@ let render_plaintext plaintext =
   let text = Widget.rich_text content ~w:!_width ~h:(16 * get_wrapped_line_count 16 plaintext) in
   [text]
 
-let rec parse_gemini_response response breeze_view urlbar = 
+let rec parse_gemtext_response response breeze_view urlbar protocol = 
   let (_content_type, tokens) = match String.split_on_char '\n' response with
     | x :: xs -> (x, xs)
     | _ -> failwith "Unable to parse tokens" in
@@ -113,22 +114,43 @@ let rec parse_gemini_response response breeze_view urlbar =
       let text = Widget.label ~style:Tsdl_ttf.Ttf.Style.underline ~fg:(Draw.opaque Draw.blue) description in
       Widget.mouse_over ~enter:(fun _ -> Draw.set_system_cursor Tsdl.Sdl.System_cursor.hand) text;
       let on_click _ =
-        let url = match line.content with
-        | url when String.starts_with ~prefix:"gemini://" line.content -> url (* Absolute URL *)
+        let (url, request_body, port, ssl) = match line.content with
+        | url when String.starts_with ~prefix:"gemini://" line.content -> (url, url ^ "\r\n", 1965, true) (* Absolute URL *)
+        | url when String.starts_with ~prefix:"spartan://" line.content -> (* Absolute URL *)
+          let request_body = match parse_url line.content with
+          | Success (_, _, request_body, _) -> request_body
+          | Failure _ -> failwith "Failed to parse spartan url" in
+          (url, request_body, 300, false) 
         | _ -> (* Relative URL *)
           let current_url = Widget.get_text urlbar in
           let uri = Uri.of_string current_url in
+          let host = match Uri.host uri with
+          | Some host -> host
+          | None -> failwith "no host!" in
           let path = Uri.path uri in
           let path_components = String.split_on_char '/' path in
           let all_but_last = Helpers.take (max (List.length path_components - 1) 0) path_components in
-          let new_path = List.nth all_but_last 0 ^ "/" ^ line.content in
-          Uri.with_uri ~path:(Some new_path) uri |> Uri.to_string in
+          let joiner = match String.starts_with ~prefix:"/" path with
+          | true -> ""
+          | false -> "/" in
+          let new_path = match List.length all_but_last with
+          | 0 -> joiner ^ line.content
+          | _ -> List.nth all_but_last 0 ^ joiner ^ line.content in
+          let (request_body, port, ssl) = match protocol with
+          | Gemini -> 
+            let request_body = Uri.with_uri ~path:(Some new_path) uri |> Uri.to_string in
+            (request_body ^ "\r\n", 1965, true)
+          | Spartan -> 
+            (* NOTE: Deduplicate leading slash in path *)
+            let request_body = String.concat " " [host; joiner ^ new_path; "0\r\n"] in
+            (request_body, 300, false)
+          | _ -> failwith "unreachable" in
+          (Uri.with_uri ~path:(Some new_path) uri |> Uri.to_string, request_body, port, ssl) in
         Widget.set_text urlbar url;
-        let request_body = url ^ "\r\n" in
         let server = List.nth (String.split_on_char '/' url) 2 in
-        let response = network_request ~ssl:true server 1965 request_body in
+        let response = network_request ~ssl server port request_body in
         History.add_entry (url, Gemtext);
-        parse_gemini_response response breeze_view urlbar in
+        parse_gemtext_response response breeze_view urlbar protocol in
       Widget.on_click ~click:on_click text;
       [text]
     | Heading level ->
