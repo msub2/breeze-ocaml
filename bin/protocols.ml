@@ -1,5 +1,9 @@
 open Bogue
 
+(* Window size constants *)
+let _width = ref 640
+let _height = ref 480
+
 (* Not yet used *)
 type protocol = 
   | Plaintext
@@ -107,6 +111,7 @@ let network_request ?(ssl = false) host port request_body =
 
     (* Close the socket *)
     Unix.close socket;
+    print_endline response;
     response
   | false ->
     (* Send the request *)
@@ -131,3 +136,26 @@ let network_request ?(ssl = false) host port request_body =
     | true -> String.sub raw_response 0 ((String.length raw_response) - 1)
     | false -> raw_response in
     response
+
+let parse_plaintext_response response breeze_view =
+  let height = String.split_on_char '\n' response
+    |> List.length in
+  let text = Widget.text_display response
+    |> Layout.resident ~w:!_width ~h:(height * 18)
+    |> Layout.make_clip ~scrollbar:false ~w:!_width ~h:!_height in
+
+  Layout.set_rooms breeze_view [text]
+
+let parse_image_response filename response breeze_view = 
+  let file_path = "_cache/" ^ filename in
+  let exists = Sys.file_exists file_path in
+  let _ = if not exists then
+    let oc = open_out file_path in
+    Printf.fprintf oc "%s\n" response;
+    close_out oc in
+  let image = file_path
+    |> Widget.image ~noscale:true
+    |> Layout.resident
+    |> Layout.make_clip ~scrollbar:false ~w:!_width ~h:!_height in
+  
+  Layout.set_rooms breeze_view [image]
