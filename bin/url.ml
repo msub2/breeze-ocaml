@@ -13,6 +13,13 @@ type parse_result =
   | Success of string * int * string * protocol
   | Failure of parse_error
 
+let parse_finger_url url = 
+  match String.split_on_char '/' url with
+  | host :: selector_parts -> 
+    let request_body = String.concat "/" selector_parts in
+    Success (host, 79, request_body ^ "\r\n", Plaintext)
+  | [] -> Failure Malformed
+
 (** Extracts the host, port, and selector from a gopher URL.
     This assumes that the gopher:// prefix has already been stripped. *)
 let parse_gopher_url url =
@@ -47,6 +54,7 @@ let parse_url url =
   | None -> failwith "bad host" in
   let path = Uri.path uri in
   match Uri.scheme uri with
+  | Some "finger" -> parse_finger_url (host ^ path)
   | Some "gopher" -> parse_gopher_url (host ^ path)
   | Some "gemini" -> parse_gemini_url (host ^ path)
   | Some "spartan" -> parse_spartan_url host path

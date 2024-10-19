@@ -7,6 +7,7 @@ let _height = ref 480
 (* Not yet used *)
 type protocol = 
   | Plaintext
+  | Finger
   | Gopher
   | GopherPlus
   | Gemini

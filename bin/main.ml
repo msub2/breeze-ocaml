@@ -20,6 +20,9 @@ let go_action breeze_view urlbar =
   let response = try network_request ~ssl host port request_body with Failure message -> message in
   (* The assumptions here are outdated, need to account for resource links in history now *)
   match protocol with
+  | Finger ->
+    History.add_entry (url, Plaintext);
+    parse_plaintext_response response breeze_view
   | Gopher -> 
     History.add_entry (url, Gophermap);
     parse_gopher_response response breeze_view urlbar
