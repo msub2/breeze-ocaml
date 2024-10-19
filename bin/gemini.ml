@@ -175,7 +175,6 @@ let rec parse_gemtext_response response breeze_view urlbar protocol =
         let text = Widget.rich_text content ~w:!_width ~h:(size * get_wrapped_line_count size line.content) ~size in
         [text]
       | Text | ListItem ->
-        print_endline line.content;
         let content = Text_display.paragraphs_of_string line.content in
         let text = Widget.rich_text content ~w:!_width ~h:(16 * get_wrapped_line_count 16 line.content) in
         [text]
