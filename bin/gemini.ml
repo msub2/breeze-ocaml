@@ -60,6 +60,7 @@ let parse_link_line line =
   | _ -> failwith ("Bad link line: " ^ line)
 
 let build_gemini_line line =
+  print_endline ("Building Gemini line: " ^ line);
   let chunks = String.split_on_char ' ' line in
   let identifier = List.nth chunks 0 in
   let (line_kind, text, description, parser_mode) = match identifier with
@@ -96,7 +97,9 @@ let rec parse_gemini_response response breeze_view urlbar =
   let (_content_type, tokens) = match String.split_on_char '\n' response with
     | x :: xs -> (x, xs)
     | _ -> failwith "Unable to parse tokens" in
-  let lines = List.map build_gemini_line tokens in
+  let lines = match List.length tokens with
+  | 0 -> [build_gemini_line response]
+  | _ -> List.map build_gemini_line tokens in
   let style_line line =
     let line_widgets = match line.line_type with
     | Link | Heading _ | Quote when line.parser_mode == Preformatted ->

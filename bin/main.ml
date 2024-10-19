@@ -23,7 +23,7 @@ let go_action breeze_view urlbar =
   | Gopher -> 
     History.add_entry (url, Gophermap);
     parse_gopher_response response breeze_view urlbar
-  | Gemini -> 
+  | Gemini | Spartan -> 
     History.add_entry (url, Gemtext);
     parse_gemini_response response breeze_view urlbar
   | _ -> parse_plaintext_response response breeze_view
@@ -64,7 +64,7 @@ let () =
   let breeze_view = breezeview_widget
     |> Layout.resident ~w:!_width ~h:!_height
     |> Layout.make_clip ~w:!_width ~h:!_height in
-  let urlbar = Widget.text_input ~text:"gemini://skyjake.fi/" ~prompt:"Enter URL..." () ~size:16 in
+  let urlbar = Widget.text_input ~text:"spartan://mozz.us/" ~prompt:"Enter URL..." () ~size:16 in
   let go_button = Widget.button "Go" ~action:(fun _ -> go_action breeze_view urlbar) in
   let back_button = Widget.button "<" ~action:(fun _ -> history_action Back breeze_view urlbar) in
   let forward_button = Widget.button ">" ~action:(fun _ -> history_action Forward breeze_view urlbar) in
