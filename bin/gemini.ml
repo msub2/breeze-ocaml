@@ -60,7 +60,6 @@ let parse_link_line line =
   | _ -> failwith ("Bad link line: " ^ line)
 
 let build_gemini_line line =
-  print_endline ("Building Gemini line: " ^ line);
   let chunks = String.split_on_char ' ' line in
   let identifier = List.nth chunks 0 in
   let (line_kind, text, description, parser_mode) = match identifier with

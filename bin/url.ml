@@ -37,7 +37,7 @@ let parse_spartan_url url =
   (* TODO: More stringent parsing *)
   match String.split_on_char '/' url with
   | host :: path -> 
-    let request_body = String.concat " " [host; String.concat "" path; "0"] in
+    let request_body = String.concat " " [host; "/" ^ String.concat "" path; "0"] in
     Success (host, 300, request_body, Spartan)
   | [] -> Failure Malformed
 
