@@ -91,10 +91,11 @@ let network_request ?(ssl = false) host port request_body =
 
       match Tls.Engine.handle_tls tls_state server_response with
       | Ok (new_state, Some `Eof, _, `Data (Some data)) -> (new_state, data)
-      | Ok (new_state, None, _, `Data (Some data)) -> 
-        let (new_new_state, new_data) = receive_data new_state in
-        (new_new_state, data ^ new_data)
-      | Ok (_, _, _, `Data None) -> failwith "Error: No data received" (* TODO: Figure out what to actually do here *)
+      | Ok (new_state, None, _, _) -> receive_data new_state
+      | Ok (new_state, _, `Response Some response, _) ->
+        let _ = Unix.send socket (String.to_bytes response) 0 (String.length response) [] in
+        receive_data new_state
+      | Ok (new_state, Some `Eof, _, `Data None) -> (new_state, "")
       | Error (alert, _) -> failwith ("TLS error: " ^ Tls.Engine.string_of_failure alert)
     in
 
