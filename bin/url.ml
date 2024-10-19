@@ -26,7 +26,7 @@ let parse_gopher_url url =
   match String.split_on_char '/' url with
   | host :: selector_parts -> 
     let request_body = String.concat "/" selector_parts in
-    Success (host, 70, request_body, Gopher)
+    Success (host, 70, request_body ^ "\r\n", Gopher)
   | [] -> Failure Malformed
 
 (** Extracts the host, port, and selector from a gemini URL.
@@ -35,7 +35,7 @@ let parse_gemini_url url =
   (* TODO: More stringent parsing *)
   match String.split_on_char '/' url with
   | host :: _ -> 
-    Success (host, 1965, "gemini://" ^ url, Gemini)
+    Success (host, 1965, "gemini://" ^ url ^ "\r\n", Gemini)
   | [] -> Failure Malformed
 
 (** Extracts the host, port, and selector from a spartan URL.

@@ -11,10 +11,9 @@ let _height = ref 480
 
 let go_action breeze_view urlbar = 
   let url = Widget.get_text urlbar in
-  let (host, port, selector, protocol) = match parse_url url with
+  let (host, port, request_body, protocol) = match parse_url url with
   | Success (host, port, request_body, protocol) -> (host, port, request_body, protocol)
   | Failure _ -> ("gopher.floodgap.com", 70, "\r\n", Gopher) in
-  let request_body = selector ^ "\r\n" in
   (* Update this as needed *)
   let ssl = protocol == Gemini in
   let response = try network_request ~ssl host port request_body with Failure message -> message in
@@ -70,7 +69,7 @@ let () =
   let breeze_view = breezeview_widget
     |> Layout.resident ~w:!_width ~h:!_height
     |> Layout.make_clip ~w:!_width ~h:!_height in
-  let urlbar = Widget.text_input ~text:"spartan://mozz.us/" ~prompt:"Enter URL..." () ~size:16 in
+  let urlbar = Widget.text_input ~text:"gemini://gemini.circumlunar.space/users/solderpunk/gemlog/the-mercury-protocol.gmi" ~prompt:"Enter URL..." () ~size:16 in
   let go_button = Widget.button "Go" ~action:(fun _ -> go_action breeze_view urlbar) in
   let back_button = Widget.button "<" ~action:(fun _ -> history_action Back breeze_view urlbar) in
   let forward_button = Widget.button ">" ~action:(fun _ -> history_action Forward breeze_view urlbar) in
