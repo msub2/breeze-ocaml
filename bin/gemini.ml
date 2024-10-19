@@ -111,7 +111,7 @@ let rec parse_gemini_response response breeze_view urlbar =
       let description = match line.description with
       | Some d -> d
       | None -> line.content in
-      let text = Widget.rich_text [(Text_display.underline (Text_display.raw description))] ~w:!_width ~h:18 in
+      let text = Widget.label ~style:Tsdl_ttf.Ttf.Style.underline ~fg:(Draw.opaque Draw.blue) description in
       Widget.mouse_over ~enter:(fun _ -> Draw.set_system_cursor Tsdl.Sdl.System_cursor.hand) text;
       let on_click _ =
         let url = match line.content with

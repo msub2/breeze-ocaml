@@ -111,7 +111,6 @@ let network_request ?(ssl = false) host port request_body =
 
     (* Close the socket *)
     Unix.close socket;
-    print_endline response;
     response
   | false ->
     (* Send the request *)
