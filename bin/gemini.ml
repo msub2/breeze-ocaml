@@ -68,14 +68,19 @@ let build_gemini_line line =
   | "##" -> (Heading 2, String.sub line 3 (String.length line - 3), None, !current_parser_mode)
   | "###" -> (Heading 3, String.sub line 4 (String.length line - 4), None, !current_parser_mode)
   | ">" -> (Quote, String.sub line 1 (String.length line - 1), None, !current_parser_mode)
-  | "```" -> 
+  | identifier when String.starts_with ~prefix:"```" identifier -> 
     let _ = match !current_parser_mode with
       | Normal -> current_parser_mode := Preformatted
       | Preformatted -> current_parser_mode := Normal in
-    (PreformatToggle, "", None, !current_parser_mode)
+    let description = match String.length line > 3 with
+    | true ->
+      Some (String.sub line 3 (String.length line - 3))
+    | false -> None in
+    (PreformatToggle, "", description, !current_parser_mode)
   | _ -> (Text, line, None, !current_parser_mode) in
   new_gemini_line line_kind text parser_mode ?description
 
+(* This is still far from perfect, but *most* things should be readable *)
 let get_wrapped_line_count size content =
   let length = String.length content |> float_of_int in
   let glyphs_per_line = float_of_int size +. float_of_int !_width /. float_of_int size in
@@ -138,7 +143,13 @@ let rec parse_gemini_response response breeze_view urlbar =
       let text = Widget.rich_text content ~w:!_width ~h:(16 * get_wrapped_line_count 16 line.content) in
       [text]
     | PreformatToggle ->
-      []
+      let widget = match line.description with
+      | Some description -> 
+        let content = Text_display.para (description) |> Text_display.italic in
+        let text = Widget.rich_text [content] ~w:!_width ~h:(16 * get_wrapped_line_count 16 line.content) in
+        [text]
+      | None -> [] in
+      widget
     | Quote ->
       let content = Text_display.para ("\t" ^ line.content) |> Text_display.italic in
       let text = Widget.rich_text [content] ~w:!_width ~h:(16 * get_wrapped_line_count 16 line.content) in
