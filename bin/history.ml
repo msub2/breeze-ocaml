@@ -12,8 +12,17 @@ module History = struct
   let add_entry entry =
     (* Trim the history to the current point (discard any "forward" entries) *)
     let new_history = (Helpers.take (!history_index + 1) (List.rev !history)) in
-    history := entry :: new_history;
-    history_index := List.length new_history
+
+    (* Only add the entry if it's different from the last entry in the trimmed history *)
+    let should_add = match new_history with
+      | last_entry :: _ -> fst last_entry <> fst entry
+      | [] -> true
+    in
+    
+    if should_add then begin
+      history := entry :: new_history;
+      history_index := List.length new_history
+    end
   
   let history_forward () =
     history_index := Helpers.clamp 0 ((List.length !history) - 1) (!history_index + 1)
