@@ -88,11 +88,6 @@ let get_wrapped_line_count size content =
   let lines = length /. glyphs_per_line |> Float.round |> int_of_float in
   max lines 1
 
-let render_plaintext plaintext =
-  let content = Text_display.paragraphs_of_string plaintext in
-  let text = Widget.rich_text content ~w:!_width ~h:(16 * get_wrapped_line_count 16 plaintext) in
-  [text]
-
 let rec parse_gemtext_response response breeze_view urlbar protocol = 
   let (status, tokens) = match String.split_on_char '\n' response with
     | x :: xs -> (x, xs)
@@ -124,7 +119,7 @@ let rec parse_gemtext_response response breeze_view urlbar protocol =
         | Some d -> d
         | None -> line.content in
         let text = Widget.label ~style:Tsdl_ttf.Ttf.Style.underline ~fg:(Draw.opaque Draw.blue) description in
-        Widget.mouse_over ~enter:(fun _ -> Draw.set_system_cursor Tsdl.Sdl.System_cursor.hand) text;
+        Widget.mouse_over ~enter:(fun _ -> Draw.set_system_cursor Tsdl.Sdl.System_cursor.hand; print_endline line.content) text;
         let on_click _ =
           let (url, request_body, port, ssl) = match line.content with
           | url when String.starts_with ~prefix:"gemini://" line.content -> (url, url, 1965, true) (* Absolute URL *)

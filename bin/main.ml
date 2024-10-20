@@ -69,7 +69,7 @@ let () =
   let breeze_view = breezeview_widget
     |> Layout.resident ~w:!_width ~h:!_height
     |> Layout.make_clip ~w:!_width ~h:!_height in
-  let urlbar = Widget.text_input ~text:"text://txt.textprotocol.org/" ~prompt:"Enter URL..." () ~size:16 in
+  let urlbar = Widget.text_input ~text:"gemini://scrollprotocol.us.to/" ~prompt:"Enter URL..." () ~size:16 in
   let go_button = Widget.button "Go" ~action:(fun _ -> go_action breeze_view urlbar) in
   let back_button = Widget.button "<" ~action:(fun _ -> history_action Back breeze_view urlbar) in
   let forward_button = Widget.button ">" ~action:(fun _ -> history_action Forward breeze_view urlbar) in
