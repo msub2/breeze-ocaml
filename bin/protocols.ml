@@ -140,11 +140,23 @@ let network_request ?(ssl = false) host port request_body =
     | false -> raw_response in
     response
 
-let parse_plaintext_response response breeze_view =
-  let height = String.split_on_char '\n' response
-    |> List.length in
-  let text = Widget.text_display response
-    |> Layout.resident ~w:!_width ~h:(height * 18)
+let parse_plaintext_response ?(show_link = true) response breeze_view =
+  let lines = String.split_on_char '\n' response in
+  (* let height = List.length lines in *)
+  let style_line line =
+    if show_link && String.starts_with ~prefix:"=>" line then
+      let link = List.nth (String.split_on_char ' ' line) 1 in
+      print_endline link;
+      let link_text = Widget.label ~fg:(Draw.(blue |> opaque)) ~style:Tsdl_ttf.Ttf.Style.underline ~align:Draw.Max link in
+      Widget.mouse_over ~enter:(fun _ -> Draw.set_system_cursor Tsdl.Sdl.System_cursor.hand) link_text;
+      let prefix = Widget.rich_text [Text_display.raw "=> "] ~w:18 ~h:16 in
+      Layout.flat_of_w [prefix; link_text] ~sep:0
+    else
+      let text = Widget.text_display line ~w:!_width ~h:16 in
+      Layout.flat_of_w [text] ~sep:0
+  in
+  let text = List.map style_line lines
+    |> Layout.tower ~sep:0
     |> Layout.make_clip ~scrollbar:false ~w:!_width ~h:!_height in
 
   Layout.set_rooms breeze_view [text]

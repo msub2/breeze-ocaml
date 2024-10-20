@@ -46,8 +46,9 @@ Below are the following protocols that Breeze should ideally be able to speak. "
   - [ ] Usable
   - [ ] Navigable
 - Nightfall Express
-  - [ ] Usable
+  - [x] Usable
   - [ ] Navigable
+  - [ ] NPS
 - Guppy
   - [ ] Usable
   - [ ] Navigable

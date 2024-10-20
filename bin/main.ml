@@ -19,7 +19,7 @@ let go_action breeze_view urlbar =
   let response = try network_request ~ssl host port request_body with Failure message -> message in
   (* The assumptions here are outdated, need to account for resource links in history now *)
   match protocol with
-  | Finger ->
+  | Finger | Nex ->
     History.add_entry (url, Plaintext);
     parse_plaintext_response response breeze_view
   | Gopher -> 
@@ -69,7 +69,7 @@ let () =
   let breeze_view = breezeview_widget
     |> Layout.resident ~w:!_width ~h:!_height
     |> Layout.make_clip ~w:!_width ~h:!_height in
-  let urlbar = Widget.text_input ~text:"gemini://gemini.circumlunar.space/users/solderpunk/gemlog/the-mercury-protocol.gmi" ~prompt:"Enter URL..." () ~size:16 in
+  let urlbar = Widget.text_input ~text:"nex://nightfall.city/" ~prompt:"Enter URL..." () ~size:16 in
   let go_button = Widget.button "Go" ~action:(fun _ -> go_action breeze_view urlbar) in
   let back_button = Widget.button "<" ~action:(fun _ -> history_action Back breeze_view urlbar) in
   let forward_button = Widget.button ">" ~action:(fun _ -> history_action Forward breeze_view urlbar) in
