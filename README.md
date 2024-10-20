@@ -37,7 +37,7 @@ Below are the following protocols that Breeze should ideally be able to speak. "
   - [ ] Usable
   - [ ] Navigable
 - Text Protocol
-  - [ ] Usable
+  - [x] Usable
   - [ ] Navigable
 - SuperTXT
   - [ ] Usable
