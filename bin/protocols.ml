@@ -14,6 +14,7 @@ type protocol =
   | Spartan
   | Guppy
   | Nex
+  | Text
   | Unknown
 
 type content_type = 
@@ -146,7 +147,6 @@ let parse_plaintext_response ?(show_link = true) response breeze_view =
   let style_line line =
     if show_link && String.starts_with ~prefix:"=>" line then
       let link = List.nth (String.split_on_char ' ' line) 1 in
-      print_endline link;
       let link_text = Widget.label ~fg:(Draw.(blue |> opaque)) ~style:Tsdl_ttf.Ttf.Style.underline ~align:Draw.Max link in
       Widget.mouse_over ~enter:(fun _ -> Draw.set_system_cursor Tsdl.Sdl.System_cursor.hand) link_text;
       let prefix = Widget.rich_text [Text_display.raw "=> "] ~w:18 ~h:16 in

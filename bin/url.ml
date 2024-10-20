@@ -51,6 +51,13 @@ let parse_nex_url host path =
   let request_body = path ^ "\r\n" in
   Success (host, 1900, request_body, Nex)
 
+(** Extracts the host, port, and selector from a text URL.
+  This assumes that the text:// prefix has already been stripped. *)
+let parse_text_url host path =
+  (* TODO: Account for potential TLS connections *)
+  let request_body = "text://" ^ path ^ "\r\n" in
+  Success (host, 1961, request_body, Text)
+
 (** Takes in a URL and attempts to extract the necessary parameters to pass
     to the actual network request *)
 let parse_url url = 
@@ -65,4 +72,5 @@ let parse_url url =
   | Some "gemini" -> parse_gemini_url (host ^ path)
   | Some "spartan" -> parse_spartan_url host path
   | Some "nex" -> parse_nex_url host path
+  | Some "text" -> parse_text_url host path
   | _ ->  "Bad URL: " ^ url |> failwith;
