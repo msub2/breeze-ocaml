@@ -119,7 +119,7 @@ let rec parse_gemtext_response response breeze_view urlbar protocol =
         | Some d -> d
         | None -> line.content in
         let text = Widget.label ~style:Tsdl_ttf.Ttf.Style.underline ~fg:(Draw.opaque Draw.blue) description in
-        Widget.mouse_over ~enter:(fun _ -> Draw.set_system_cursor Tsdl.Sdl.System_cursor.hand; print_endline line.content) text;
+        Widget.mouse_over ~enter:(fun _ -> Draw.set_system_cursor Tsdl.Sdl.System_cursor.hand) text;
         let on_click _ =
           let (url, request_body, port, ssl) = match line.content with
           | url when String.starts_with ~prefix:"gemini://" line.content -> (url, url, 1965, true) (* Absolute URL *)
@@ -151,6 +151,9 @@ let rec parse_gemtext_response response breeze_view urlbar protocol =
               (* NOTE: Deduplicate leading slash in path *)
               let request_body = String.concat " " [host; joiner ^ new_path; "0\r\n"] in
               (request_body, 300, false)
+            | Nex ->
+              let request_body = "/" ^ new_path ^ "\r\n" in
+              (request_body, 1900, false)
             | _ -> failwith "unreachable" in
             (Uri.with_uri ~path:(Some new_path) uri |> Uri.to_string, request_body, port, ssl) in
           Widget.set_text urlbar url;

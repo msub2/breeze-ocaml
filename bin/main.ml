@@ -3,6 +3,7 @@ open Gopher
 open Gemini
 open History
 open Protocols
+open Parsers
 open Url
 
 (* Window size constants *)
@@ -21,7 +22,8 @@ let go_action breeze_view urlbar =
   match protocol with
   | Finger | Nex | Text ->
     History.add_entry (url, Plaintext);
-    parse_plaintext_response response breeze_view
+    let show_link = String.ends_with ~suffix:".txt" url |> not in
+    parse_plaintext_response ~show_link response breeze_view urlbar Plaintext
   | Gopher -> 
     History.add_entry (url, Gophermap);
     parse_gopher_response response breeze_view urlbar
@@ -31,7 +33,7 @@ let go_action breeze_view urlbar =
   | Spartan -> 
     History.add_entry (url, Gemtext);
     parse_gemtext_response response breeze_view urlbar Spartan
-  | _ -> parse_plaintext_response response breeze_view
+  | _ -> parse_plaintext_response ~show_link:false response breeze_view urlbar Plaintext
 
 let history_action (action : history_action) breeze_view urlbar = 
   let can_navigate = match action with 
@@ -53,11 +55,11 @@ let history_action (action : history_action) breeze_view urlbar =
     let _ = match content_type with
     | Gophermap -> parse_gopher_response response breeze_view urlbar
     | Gemtext -> parse_gemtext_response response breeze_view urlbar protocol
-    | Plaintext -> parse_plaintext_response response breeze_view
+    | Plaintext -> parse_plaintext_response response breeze_view urlbar protocol
     | Image -> 
       let filename = List.nth (List.rev (String.split_on_char '/' selector)) 0 in
       parse_image_response filename response breeze_view
-    | _ -> parse_plaintext_response response breeze_view in
+    | _ -> parse_plaintext_response response breeze_view urlbar protocol in
     
     Widget.set_text urlbar url
 
@@ -69,7 +71,7 @@ let () =
   let breeze_view = breezeview_widget
     |> Layout.resident ~w:!_width ~h:!_height
     |> Layout.make_clip ~w:!_width ~h:!_height in
-  let urlbar = Widget.text_input ~text:"gemini://scrollprotocol.us.to/" ~prompt:"Enter URL..." () ~size:16 in
+  let urlbar = Widget.text_input ~text:"nex://nightfall.city/" ~prompt:"Enter URL..." () ~size:16 in
   let go_button = Widget.button "Go" ~action:(fun _ -> go_action breeze_view urlbar) in
   let back_button = Widget.button "<" ~action:(fun _ -> history_action Back breeze_view urlbar) in
   let forward_button = Widget.button ">" ~action:(fun _ -> history_action Forward breeze_view urlbar) in

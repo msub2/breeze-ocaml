@@ -2,6 +2,7 @@ open Bogue
 open History
 open Helpers
 open Protocols
+open Parsers
 
 (* Window size constants *)
 let _width = ref 640
@@ -68,7 +69,7 @@ let rec parse_gopher_response response breeze_view urlbar =
         match line.line_kind with
         | '0' | 'h' -> 
           History.add_entry (url, Plaintext);
-          parse_plaintext_response response breeze_view
+          parse_plaintext_response response breeze_view urlbar Gopher
         | '1' -> 
           History.add_entry (url, Gophermap);
           parse_gopher_response response breeze_view urlbar
