@@ -137,14 +137,15 @@ let rec parse_gemtext_response response breeze_view urlbar protocol =
             let path_components = String.split_on_char '/' path in
             let all_but_last = Helpers.take (max (List.length path_components - 1) 0) path_components in
             let joiner = match String.starts_with ~prefix:"/" path with
-            | true -> ""
-            | false -> "/" in
+            | true -> "/"
+            | false -> "" in
             let new_path = match List.length all_but_last with
             | 0 -> joiner ^ line.content
             | _ -> List.nth all_but_last 0 ^ joiner ^ line.content in
             let (request_body, port, ssl) = match protocol with
             | Gemini -> 
-              let request_body = Uri.with_uri ~path:(Some new_path) uri |> Uri.to_string in
+              let new_uri = Uri.with_uri ~path:(Some new_path) uri |> Uri.to_string in
+              let request_body = new_uri ^ "\r\n" in
               (request_body, 1965, true)
             | Spartan -> 
               (* NOTE: Deduplicate leading slash in path *)

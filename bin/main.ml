@@ -70,7 +70,7 @@ let () =
   let breeze_view = breezeview_widget
     |> Layout.resident ~w:width ~h:height
     |> Layout.make_clip ~w:width ~h:height ~scrollbar:false in
-  let urlbar = Widget.text_input ~text:"nex://nightfall.city/" ~prompt:"Enter URL..." () ~size:16 in
+  let urlbar = Widget.text_input ~text:"gemini://geminiprotocol.net/" ~prompt:"Enter URL..." () ~size:16 in
   let go_button = Widget.button "Go" ~action:(fun _ -> go_action breeze_view urlbar) in
   let back_button = Widget.button "<" ~action:(fun _ -> history_action Back breeze_view urlbar) in
   let forward_button = Widget.button ">" ~action:(fun _ -> history_action Forward breeze_view urlbar) in
