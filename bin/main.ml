@@ -5,10 +5,7 @@ open History
 open Protocols
 open Parsers
 open Url
-
-(* Window size constants *)
-let _width = ref 640
-let _height = ref 480
+open Display
 
 let go_action breeze_view urlbar = 
   let url = Widget.get_text urlbar in
@@ -67,19 +64,32 @@ let history_action (action : history_action) breeze_view urlbar =
 let () =
   Theme.set_text_font "./Inconsolata.ttf";
   Mirage_crypto_rng_unix.initialize (module Mirage_crypto_rng.Fortuna);
+  let width = Display.width () in
+  let height = Display.height () in
   let breezeview_widget = Widget.text_display "" in
   let breeze_view = breezeview_widget
-    |> Layout.resident ~w:!_width ~h:!_height
-    |> Layout.make_clip ~w:!_width ~h:!_height in
+    |> Layout.resident ~w:width ~h:height
+    |> Layout.make_clip ~w:width ~h:height in
   let urlbar = Widget.text_input ~text:"nex://nightfall.city/" ~prompt:"Enter URL..." () ~size:16 in
   let go_button = Widget.button "Go" ~action:(fun _ -> go_action breeze_view urlbar) in
   let back_button = Widget.button "<" ~action:(fun _ -> history_action Back breeze_view urlbar) in
   let forward_button = Widget.button ">" ~action:(fun _ -> history_action Forward breeze_view urlbar) in
   let toolbar = Layout.flat_of_w [back_button; forward_button; urlbar; go_button] ~background:(Layout.color_bg (Draw.transp Draw.grey)) in
-  Layout.set_width toolbar !_width;
+  Layout.set_width ~keep_resize:true toolbar width;
   go_action breeze_view urlbar;
 
-  [toolbar; breeze_view]
-    |> Layout.tower ~name:"Breeze - A SmolNet Browser"
+  let window_layout = [toolbar; breeze_view]
+    |> Layout.tower ~name:"Breeze - A SmolNet Browser" in
+  let on_resize () =
+    let (x, y) = Layout.get_size window_layout in
+    Display.update_display_dimensions x y;
+    let new_breeze_view = breezeview_widget
+      |> Layout.resident ~w:width ~h:height
+      |> Layout.make_clip ~w:width ~h:height in
+    Layout.replace_room breeze_view ~by:new_breeze_view;
+  in
+  Layout.on_resize breeze_view on_resize;
+
+  window_layout
     |> Bogue.of_layout
     |> Bogue.run

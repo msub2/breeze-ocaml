@@ -3,10 +3,7 @@ open Helpers
 open History
 open Protocols
 open Url
-
-(* Window size constants *)
-let _width = ref 640
-let _height = ref 480
+open Display
 
 type line_type = 
   | Text
@@ -84,11 +81,13 @@ let build_gemini_line line =
 (* This is still far from perfect, but *most* things should be readable *)
 let get_wrapped_line_count size content =
   let length = String.length content |> float_of_int in
-  let glyphs_per_line = float_of_int size +. float_of_int !_width /. float_of_int size in
+  let glyphs_per_line = float_of_int size +. (Display.width () |> float_of_int) /. float_of_int size in
   let lines = length /. glyphs_per_line |> Float.round |> int_of_float in
   max lines 1
 
 let rec parse_gemtext_response response breeze_view urlbar protocol = 
+  let width = Display.width () in
+  let height = Display.height () in
   let (status, tokens) = match String.split_on_char '\n' response with
     | x :: xs -> (x, xs)
     | [] -> (response, []) in
@@ -112,7 +111,7 @@ let rec parse_gemtext_response response breeze_view urlbar protocol =
       | Link | Heading _ | Quote when line.parser_mode == Preformatted ->
         let full_line = String.concat "\t" [string_of_line_type line.line_type; line.content; Option.value ~default:"" line.description] in
         let content = Text_display.paragraphs_of_string full_line in
-        let text = Widget.rich_text content ~w:!_width ~h:(16 * get_wrapped_line_count 16 line.content) in
+        let text = Widget.rich_text content ~w:width ~h:(16 * get_wrapped_line_count 16 line.content) in
         [text]
       | Link ->
         let description = match line.description with
@@ -170,23 +169,23 @@ let rec parse_gemtext_response response breeze_view urlbar protocol =
         | 3 -> 24
         | _ -> failwith "Invalid heading level!" in
         let content = Text_display.paragraphs_of_string line.content in
-        let text = Widget.rich_text content ~w:!_width ~h:(size * get_wrapped_line_count size line.content) ~size in
+        let text = Widget.rich_text content ~w:width ~h:(size * get_wrapped_line_count size line.content) ~size in
         [text]
       | Text | ListItem ->
         let content = Text_display.paragraphs_of_string line.content in
-        let text = Widget.rich_text content ~w:!_width ~h:(16 * get_wrapped_line_count 16 line.content) in
+        let text = Widget.rich_text content ~w:width ~h:(16 * get_wrapped_line_count 16 line.content) in
         [text]
       | PreformatToggle ->
         let widget = match line.description with
         | Some description -> 
           let content = Text_display.para (description) |> Text_display.italic in
-          let text = Widget.rich_text [content] ~w:!_width ~h:(16 * get_wrapped_line_count 16 line.content) in
+          let text = Widget.rich_text [content] ~w:width ~h:(16 * get_wrapped_line_count 16 line.content) in
           [text]
         | None -> [] in
         widget
       | Quote ->
         let content = Text_display.para ("\t" ^ line.content) |> Text_display.italic in
-        let text = Widget.rich_text [content] ~w:!_width ~h:(16 * get_wrapped_line_count 16 line.content) in
+        let text = Widget.rich_text [content] ~w:width ~h:(16 * get_wrapped_line_count 16 line.content) in
         [text] in
 
       let background = Layout.color_bg (31, 31, 31, 31) in
@@ -197,6 +196,6 @@ let rec parse_gemtext_response response breeze_view urlbar protocol =
     let widgets = List.map style_line lines
       |> List.filter (fun layout -> Layout.height layout > 10)
       |> Layout.tower ~sep:0
-      |> Layout.make_clip ~scrollbar:false ~w:!_width ~h:!_height in
+      |> Layout.make_clip ~scrollbar:false ~w:width ~h:height in
 
     Layout.set_rooms breeze_view [widgets]

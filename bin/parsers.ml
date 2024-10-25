@@ -3,9 +3,11 @@ open History
 open Protocols
 open Url
 open Helpers
-open Gemini
+open Display
 
 let rec parse_plaintext_response ?(show_link = true) response breeze_view urlbar protocol =
+  let width = Display.width () in
+  let height = Display.height () in
   let lines = String.split_on_char '\n' response in
   (* let height = List.length lines in *)
   let style_line line =
@@ -43,16 +45,18 @@ let rec parse_plaintext_response ?(show_link = true) response breeze_view urlbar
       Widget.on_click ~click:on_click link_text;
       Layout.flat_of_w [prefix; link_text] ~sep:0
     else
-      let text = Widget.text_display line ~w:!_width ~h:16 in
+      let text = Widget.text_display line ~w:width ~h:16 in
       Layout.flat_of_w [text] ~sep:0
   in
   let text = List.map style_line lines
     |> Layout.tower ~sep:0
-    |> Layout.make_clip ~scrollbar:false ~w:!_width ~h:!_height in
+    |> Layout.make_clip ~scrollbar:false ~w:width ~h:height in
 
   Layout.set_rooms breeze_view [text]
 
 let parse_image_response filename response breeze_view = 
+  let width = Display.width () in
+  let height = Display.height () in
   let file_path = "_cache/" ^ filename in
   let exists = Sys.file_exists file_path in
   let _ = if not exists then
@@ -62,6 +66,6 @@ let parse_image_response filename response breeze_view =
   let image = file_path
     |> Widget.image ~noscale:true
     |> Layout.resident
-    |> Layout.make_clip ~scrollbar:false ~w:!_width ~h:!_height in
+    |> Layout.make_clip ~scrollbar:false ~w:width ~h:height in
   
   Layout.set_rooms breeze_view [image]

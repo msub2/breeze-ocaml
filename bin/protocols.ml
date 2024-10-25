@@ -1,9 +1,5 @@
 open Bogue
 
-(* Window size constants *)
-let _width = ref 640
-let _height = ref 480
-
 (* Not yet used *)
 type protocol = 
   | Plaintext
