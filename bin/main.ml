@@ -69,7 +69,7 @@ let () =
   let breezeview_widget = Widget.text_display "" in
   let breeze_view = breezeview_widget
     |> Layout.resident ~w:width ~h:height
-    |> Layout.make_clip ~w:width ~h:height in
+    |> Layout.make_clip ~w:width ~h:height ~scrollbar:false in
   let urlbar = Widget.text_input ~text:"nex://nightfall.city/" ~prompt:"Enter URL..." () ~size:16 in
   let go_button = Widget.button "Go" ~action:(fun _ -> go_action breeze_view urlbar) in
   let back_button = Widget.button "<" ~action:(fun _ -> history_action Back breeze_view urlbar) in
@@ -79,14 +79,13 @@ let () =
   go_action breeze_view urlbar;
 
   let window_layout = [toolbar; breeze_view]
-    |> Layout.tower ~name:"Breeze - A SmolNet Browser" in
+    |> Layout.tower ~name:"Breeze - A SmolNet Browser" ~hmargin:0 ~vmargin:0 ~sep:0 in 
   let on_resize () =
     let (x, y) = Layout.get_size window_layout in
-    Display.update_display_dimensions x y;
-    let new_breeze_view = breezeview_widget
-      |> Layout.resident ~w:width ~h:height
-      |> Layout.make_clip ~w:width ~h:height in
-    Layout.replace_room breeze_view ~by:new_breeze_view;
+    let (_, y2) = Layout.get_size toolbar in
+    Display.update_display_dimensions x (y - y2);
+    (* sign, hack but gets the job done for now. find a better solution later *)
+    go_action breeze_view urlbar;
   in
   Layout.on_resize breeze_view on_resize;
 
