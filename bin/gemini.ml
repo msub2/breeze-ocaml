@@ -111,7 +111,7 @@ let rec parse_gemtext_response response breeze_view urlbar protocol =
       | Link | Heading _ | Quote when line.parser_mode == Preformatted ->
         let full_line = String.concat "\t" [string_of_line_type line.line_type; line.content; Option.value ~default:"" line.description] in
         let content = Text_display.paragraphs_of_string full_line in
-        let text = Widget.rich_text content ~w:width ~h:(16 * get_wrapped_line_count 16 line.content) in
+        let text = Widget.rich_text content ~w:(width-32) ~h:(16 * get_wrapped_line_count 16 line.content) in
         [text]
       | Link ->
         let description = match line.description with
@@ -170,11 +170,11 @@ let rec parse_gemtext_response response breeze_view urlbar protocol =
         | 3 -> 24
         | _ -> failwith "Invalid heading level!" in
         let content = Text_display.paragraphs_of_string line.content in
-        let text = Widget.rich_text content ~w:width ~h:(size * get_wrapped_line_count size line.content) ~size in
+        let text = Widget.rich_text content ~w:(width-32) ~h:(size * get_wrapped_line_count size line.content) ~size in
         [text]
       | Text | ListItem ->
         let content = Text_display.paragraphs_of_string line.content in
-        let text = Widget.rich_text content ~w:width ~h:(16 * get_wrapped_line_count 16 line.content) in
+        let text = Widget.rich_text content ~w:(width-32) ~h:(16 * get_wrapped_line_count 16 line.content) in
         [text]
       | PreformatToggle ->
         let widget = match line.description with
@@ -186,7 +186,7 @@ let rec parse_gemtext_response response breeze_view urlbar protocol =
         widget
       | Quote ->
         let content = Text_display.para ("\t" ^ line.content) |> Text_display.italic in
-        let text = Widget.rich_text [content] ~w:width ~h:(16 * get_wrapped_line_count 16 line.content) in
+        let text = Widget.rich_text [content] ~w:(width-32) ~h:(16 * get_wrapped_line_count 16 line.content) in
         [text] in
 
       let background = Layout.color_bg (31, 31, 31, 31) in
@@ -196,7 +196,7 @@ let rec parse_gemtext_response response breeze_view urlbar protocol =
 
     let widgets = List.map style_line lines
       |> List.filter (fun layout -> Layout.height layout > 10)
-      |> Layout.tower ~sep:0
+      |> Layout.tower ~sep:0 ~hmargin:16
       |> Layout.make_clip ~scrollbar:false ~w:width ~h:height in
 
     Layout.set_rooms breeze_view [widgets]
