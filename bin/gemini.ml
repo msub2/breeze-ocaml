@@ -81,7 +81,7 @@ let build_gemini_line line =
 (* This is still far from perfect, but *most* things should be readable *)
 let get_wrapped_line_count size content =
   let length = String.length content |> float_of_int in
-  let glyphs_per_line = float_of_int size +. (Display.width () |> float_of_int) /. float_of_int size in
+  let glyphs_per_line = float_of_int size +. float_of_int size +. (Display.width () |> float_of_int) /. float_of_int size in
   let lines = length /. glyphs_per_line |> Float.round |> int_of_float in
   max lines 1
 
