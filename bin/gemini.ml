@@ -165,12 +165,11 @@ let rec parse_gemtext_response response breeze_view urlbar protocol =
         [text]
       | Heading level ->
         let size = match level with
-        | 1 -> 32
-        | 2 -> 28
-        | 3 -> 24
+        | 1 -> 28
+        | 2 -> 24
+        | 3 -> 20
         | _ -> failwith "Invalid heading level!" in
-        let content = Text_display.paragraphs_of_string line.content in
-        let text = Widget.rich_text content ~w:(width-32) ~h:(size * get_wrapped_line_count size line.content) ~size in
+        let text = Widget.label ~size ~font:(Label.font_from_file "./Inconsolata.ttf") line.content in
         [text]
       | Text | ListItem ->
         let content = Text_display.paragraphs_of_string line.content in
@@ -191,11 +190,11 @@ let rec parse_gemtext_response response breeze_view urlbar protocol =
 
       let background = Layout.color_bg (31, 31, 31, 31) in
       match line.parser_mode with
-      | Normal -> Layout.flat_of_w line_widgets ~sep:0 
+      | Normal -> Layout.flat_of_w line_widgets ~sep:1 
       | Preformatted -> Layout.flat_of_w line_widgets ~sep:4 ~background in
 
     let widgets = List.map style_line lines
-      |> List.filter (fun layout -> Layout.height layout > 10)
+      |> List.filter (fun layout -> Layout.height layout > 16)
       |> Layout.tower ~sep:0 ~hmargin:16
       |> Layout.make_clip ~scrollbar:false ~w:width ~h:height in
 
