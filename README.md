@@ -1,5 +1,7 @@
 # Breeze - A SmolNet Browser
 
+*Notice: This is the initial version of Breeze I began working on to learn OCaml, but I have since rewritten this in Rust and surpassed the progress here. This will remain up for archival/reference, but please see the now up-to-date repo for latest developments:* [Breeze](https://github.com/msub2/breeze)
+
 Breeze is an OCaml-based browser for various "SmolNet" protocols like Gopher, Gemini, Spartan, Guppy, Nex, and more.
 
 ## Protocol Support
